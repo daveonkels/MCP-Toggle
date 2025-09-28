@@ -84,6 +84,49 @@ find_claude_config() {
     echo "$HOME/.claude.json"
 }
 
+# Function to get all active servers from all mcpServers sections
+get_all_active_servers() {
+    local config_file="${1:-$(find_claude_config)}"
+
+    if [ ! -f "$config_file" ]; then
+        echo "{}"
+        return 1
+    fi
+
+    # Get all mcpServers from all sections (global and session-specific)
+    python3 -c "
+import json
+try:
+    with open('$config_file', 'r') as f:
+        config = json.load(f)
+
+    all_servers = {}
+
+    # Add global mcpServers (at root level)
+    if 'mcpServers' in config and isinstance(config['mcpServers'], dict):
+        all_servers.update(config['mcpServers'])
+
+    # Add session-specific mcpServers (in conversation contexts)
+    def find_mcp_servers(obj, path=''):
+        if isinstance(obj, dict):
+            for key, value in obj.items():
+                current_path = f'{path}.{key}' if path else key
+                if key == 'mcpServers' and isinstance(value, dict) and value:
+                    # Merge session servers, with newer sessions taking precedence
+                    all_servers.update(value)
+                elif isinstance(value, (dict, list)):
+                    find_mcp_servers(value, current_path)
+        elif isinstance(obj, list):
+            for i, item in enumerate(obj):
+                find_mcp_servers(item, f'{path}[{i}]')
+
+    find_mcp_servers(config)
+    print(json.dumps(all_servers))
+except Exception as e:
+    print('{}')
+"
+}
+
 # Function to save COMPLETE server configuration
 save_server_config() {
     local server_name="$1"
@@ -95,16 +138,44 @@ save_server_config() {
         return 1
     fi
     
+    # Get server config from any mcpServers section
     local server_json=$(python3 -c "
 import json
 import sys
 try:
     with open('$config_file', 'r') as f:
         config = json.load(f)
-    if 'mcpServers' in config and '$server_name' in config['mcpServers']:
-        server = config['mcpServers']['$server_name']
-        # Output the entire server configuration as JSON
-        print(json.dumps(server))
+
+    found_server = None
+
+    # Check global mcpServers first
+    if 'mcpServers' in config and isinstance(config['mcpServers'], dict):
+        if '$server_name' in config['mcpServers']:
+            found_server = config['mcpServers']['$server_name']
+
+    # Search session-specific mcpServers if not found
+    if not found_server:
+        def find_server_in_sessions(obj):
+            if isinstance(obj, dict):
+                for key, value in obj.items():
+                    if key == 'mcpServers' and isinstance(value, dict):
+                        if '$server_name' in value:
+                            return value['$server_name']
+                    elif isinstance(value, (dict, list)):
+                        result = find_server_in_sessions(value)
+                        if result:
+                            return result
+            elif isinstance(obj, list):
+                for item in obj:
+                    result = find_server_in_sessions(item)
+                    if result:
+                        return result
+            return None
+
+        found_server = find_server_in_sessions(config)
+
+    if found_server:
+        print(json.dumps(found_server))
     else:
         sys.exit(1)
 except Exception as e:
@@ -314,13 +385,14 @@ show_status() {
     echo ""
     
     if [ -f "$current_config" ]; then
+        # Get all active servers from all sections
+        local all_servers_json=$(get_all_active_servers "$current_config")
         local active_servers=$(python3 -c "
 import json
 try:
-    with open('$current_config', 'r') as f:
-        config = json.load(f)
-    if 'mcpServers' in config and config['mcpServers']:
-        for name, server in config['mcpServers'].items():
+    servers = json.loads('$all_servers_json')
+    if servers:
+        for name, server in servers.items():
             # Build display command
             if 'command' in server:
                 cmd_parts = [server['command']]
@@ -329,10 +401,10 @@ try:
                 command = ' '.join(cmd_parts).strip()
             else:
                 command = 'Unknown command'
-            
+
             # Add env var indicator
             env_indicator = ' [env]' if 'env' in server else ''
-            
+
             # Truncate long commands for display
             display_cmd = command if len(command) <= 45 else command[:42] + '...'
             print(f'{name}|{display_cmd}{env_indicator}')
