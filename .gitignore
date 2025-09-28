@@ -16,6 +16,9 @@ archive/
 .env
 .env.local
 
+# Claude Code configuration
+.claude/
+
 # IDE
 .vscode/
 .idea/
