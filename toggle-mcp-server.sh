@@ -557,6 +557,10 @@ Examples:
     $0 enable-all                   # Re-enable all disabled MCP servers
     $0 status                       # Show all servers and their states
 
+Adding New Servers:
+    Use add-mcp-server.sh to add new MCP servers interactively
+    Run: ./add-mcp-server.sh --help for detailed input guidelines
+
 Configuration:
     - Saved configs: $CONFIG_FILE
     - Auto-detects correct Claude config based on current directory

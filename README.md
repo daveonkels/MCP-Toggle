@@ -23,6 +23,7 @@ A comprehensive set of scripts for managing MCP (Model Context Protocol) servers
 | Script | Purpose | Usage |
 |--------|---------|--------|
 | `toggle-mcp-server.sh` | **Main CLI** - Enhanced status display with colors/borders | Terminal operations |
+| `add-mcp-server.sh` | **Add New Servers** - Interactive server addition with validation | Add servers active or inactive |
 | `raycast-mcp-master.sh` | **Unified Raycast** - All operations in one interface | Text input for server names |
 | `raycast-mcp-manager.py` | **Status Display** - Read-only server viewer | Status monitoring |
 
@@ -102,6 +103,37 @@ A comprehensive set of scripts for managing MCP (Model Context Protocol) servers
 
 # Restore all your servers
 ./toggle-mcp-server.sh enable-all
+```
+
+### Adding New Servers
+
+Use the interactive `add-mcp-server.sh` script to add new MCP servers:
+
+```bash
+# Run the interactive add script
+./add-mcp-server.sh
+
+# Get help with input formatting
+./add-mcp-server.sh --help
+```
+
+**Key Points:**
+- **No quotes needed** - just type values directly
+- Server names: use lowercase with hyphens (e.g., `my-server`)
+- Commands: enter executable name or full path
+- Arguments: one per line, no special formatting needed
+- Environment variables: `KEY=value` format
+- Choose to start active or inactive
+
+**Example Flow:**
+```
+Server name: my-mcp-server
+Command: npx
+Arg 0: @my/mcp-package
+Arg 1: --port=3000
+Arg 2: [press Enter to finish]
+Does this server need environment variables? n
+Start server active? n
 ```
 
 ## 🎯 Raycast Integration
@@ -326,6 +358,7 @@ alias mcp-enable-all='~/Scripts/MCP-Toggle/toggle-mcp-server.sh enable-all'
 ```
 ~/Scripts/MCP-Toggle/
 ├── toggle-mcp-server.sh              # Main CLI script (enhanced visuals)
+├── add-mcp-server.sh                 # Interactive new server addition
 ├── raycast-mcp-master.sh             # Unified Raycast controller
 ├── raycast-mcp-manager.py            # Python status viewer
 ├── raycast-mcp-dynamic.py            # Interactive server selection
@@ -356,6 +389,7 @@ alias mcp-enable-all='~/Scripts/MCP-Toggle/toggle-mcp-server.sh enable-all'
 | Want to... | Command | Raycast Alternative |
 |------------|---------|-------------------|
 | See all servers | `./toggle-mcp-server.sh status` | "MCP Manager" → List Servers |
+| **Add new server** | `./add-mcp-server.sh` | *Terminal only* |
 | Disable one server | `./toggle-mcp-server.sh disable SERVER_NAME` | **"Disable MCP Server"** (dropdown) |
 | Enable one server | `./toggle-mcp-server.sh enable SERVER_NAME` | **"Enable MCP Server"** (dropdown) |
 | Disable everything | `./toggle-mcp-server.sh disable-all` | "MCP Master Controller" → Disable ALL |

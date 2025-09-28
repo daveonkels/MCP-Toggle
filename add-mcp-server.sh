@@ -19,6 +19,7 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 CYAN='\033[0;36m'
 BOLD='\033[1m'
+DIM='\033[2m'
 NC='\033[0m' # No Color
 
 # Unicode symbols
@@ -239,8 +240,10 @@ main() {
     echo
 
     # Get server name
+    echo -e "${CYAN}Enter server name (no quotes needed):${NC}"
+    echo -e "${DIM}Examples: my-server, fastmail, desktop-commander${NC}"
     while true; do
-        read -p "Enter server name (e.g., 'my-server'): " server_name
+        read -p "Server name: " server_name
 
         if [ -z "$server_name" ]; then
             echo -e "${RED}Server name cannot be empty${NC}"
@@ -257,8 +260,10 @@ main() {
     done
 
     # Get command
+    echo -e "${CYAN}Enter the main command (no quotes needed):${NC}"
+    echo -e "${DIM}Examples: npx, python3, docker, /usr/local/bin/node${NC}"
     while true; do
-        read -p "Enter command (e.g., 'npx', 'python3', '/path/to/executable'): " command
+        read -p "Command: " command
 
         if [ -z "$command" ]; then
             echo -e "${RED}Command cannot be empty${NC}"
@@ -270,7 +275,9 @@ main() {
     done
 
     # Get arguments
-    echo -e "${CYAN}Enter command arguments (one per line, press Enter on empty line to finish):${NC}"
+    echo -e "${CYAN}Enter command arguments (no quotes needed, one per line):${NC}"
+    echo -e "${DIM}Examples: --port=3000, my-script.js, run, --verbose${NC}"
+    echo -e "${DIM}Press Enter on empty line when finished${NC}"
     args_array=()
     while true; do
         read -p "Arg ${#args_array[@]}: " arg
@@ -294,7 +301,9 @@ print(json.dumps(args))
     read -p "Does this server need environment variables? (y/n): " needs_env
 
     if [[ "$needs_env" =~ ^[Yy] ]]; then
-        echo -e "${CYAN}Enter environment variables (KEY=value format, one per line, press Enter on empty line to finish):${NC}"
+        echo -e "${CYAN}Enter environment variables (KEY=value format, no quotes needed):${NC}"
+        echo -e "${DIM}Examples: API_KEY=your_key_here, PORT=3000, DEBUG=true${NC}"
+        echo -e "${DIM}Press Enter on empty line when finished${NC}"
         env_dict="{"
         first=true
 
@@ -379,10 +388,17 @@ show_help() {
     echo "• Option to start active or inactive"
     echo "• Auto-detects correct Claude config file"
     echo
+    echo -e "${BOLD}Input Guidelines:${NC}"
+    echo "• ${GREEN}NO quotes needed${NC} - just type values directly"
+    echo "• Server names: use lowercase with hyphens (e.g., my-server)"
+    echo "• Commands: enter executable name or full path"
+    echo "• Arguments: one per line, no special formatting needed"
+    echo "• Environment variables: KEY=value format"
+    echo
     echo -e "${BOLD}Examples:${NC}"
-    echo "• Add a Node.js MCP server"
-    echo "• Add a Python MCP server with environment variables"
-    echo "• Add a Docker-based MCP server"
+    echo "• Node.js: npx → @my/mcp-server → --port=3000"
+    echo "• Python: python3 → /path/to/server.py → --verbose"
+    echo "• Docker: docker → run -i --rm my/mcp-image"
 }
 
 # Check arguments
